@@ -140,3 +140,48 @@ cd /Users/prakash/Documents/kourt/backend
 ```
 
 If you want more or fewer hits, tweak `--keywords` or the year range. The importer stores raw year-level match reports in `backend/data/aws_scj_exports`.
+
+## District court starter path
+
+District-court data is much harder to obtain as a clean public API, so the backend now includes a Bhopal-first metadata importer.
+
+Put district exports under:
+
+- `backend/district_sources/bhopal/`
+
+Supported inputs:
+
+- CSV
+- Parquet
+- JSON
+- JSONL
+
+Run the importer:
+
+```bash
+cd /Users/prakash/Documents/kourt/backend
+./venv/bin/python scripts/ingest_bhopal_district_cases.py
+```
+
+Useful variants:
+
+```bash
+./venv/bin/python scripts/ingest_bhopal_district_cases.py --focus all
+./venv/bin/python scripts/ingest_bhopal_district_cases.py --focus ndps
+./venv/bin/python scripts/ingest_bhopal_district_cases.py --dry-run
+```
+
+What it does:
+
+- filters records to `Madhya Pradesh` + `Bhopal`
+- narrows the corpus to `criminal` records by default
+- normalizes messy district metadata into consistent case cards
+- writes a JSONL export to `backend/data/district_case_exports/bhopal/`
+- ingests those case cards into Chroma for retrieval
+
+Important limitation:
+
+- this importer is `metadata-first`, not full-text judgments
+- it helps you build district coverage and candidate retrieval, but for real district case-law answers you will still want order/judgment text from e-Courts or another source
+
+The export folder is also a good remote-storage handoff point if you later move district RAG data into S3, R2, or another object store.
