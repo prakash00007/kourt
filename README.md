@@ -73,6 +73,7 @@ kourt/
 │   ├── package.json
 │   └── .env.local.example
 ├── docs/
+│   ├── collaborator-guide.md
 │   └── mvp-guide.md
 └── README.md
 ```
@@ -130,6 +131,12 @@ Frontend app:
 - `npm start` runs the standalone production server, which is lighter than `npm run dev`
 - the repo includes a helper script that copies Next.js static assets into the standalone bundle before launch
 - local auth is bypassed for core workflows via demo mode so the app is easier to test
+
+## Internal handoff
+
+For collaborator onboarding, repo structure, local fixes already applied, and contribution guidance, read:
+
+- [docs/collaborator-guide.md](/Users/prakash/Documents/kourt/docs/collaborator-guide.md)
 
 ## Main pages
 
