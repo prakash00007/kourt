@@ -9,7 +9,10 @@ from app.utils.text import clean_legal_text
 
 class PDFParser:
     def extract_text(self, file_path: Path) -> str:
-        text = self._extract_with_pymupdf(file_path)
+        try:
+            text = self._extract_with_pymupdf(file_path)
+        except Exception:
+            text = self._extract_with_pdfplumber(file_path)
         if len(text.split()) < 200:
             text = self._extract_with_pdfplumber(file_path)
         return clean_legal_text(text)

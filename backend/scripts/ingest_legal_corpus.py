@@ -1,8 +1,8 @@
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import sys
-from uuid import uuid4
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 if str(BACKEND_DIR) not in sys.path:
@@ -23,6 +23,20 @@ def load_metadata(metadata_path: Path) -> dict:
     return json.loads(metadata_path.read_text(encoding="utf-8"))
 
 
+def sanitize_metadata(metadata: dict) -> dict:
+    sanitized: dict = {}
+    for key, value in metadata.items():
+        if value is None:
+            continue
+        sanitized[key] = value
+    return sanitized
+
+
+def build_chunk_id(pdf_path: Path, chunk_index: int) -> str:
+    raw = f"{pdf_path.resolve()}::{chunk_index}"
+    return hashlib.sha1(raw.encode("utf-8")).hexdigest()
+
+
 def ingest_directory(data_dir: Path) -> None:
     settings = get_settings()
     embeddings = EmbeddingService(settings)
@@ -38,7 +52,12 @@ def ingest_directory(data_dir: Path) -> None:
     for pdf_path in pdf_files:
         metadata_path = pdf_path.with_suffix(".json")
         metadata = load_metadata(metadata_path)
-        text = parser.extract_text(pdf_path)
+        try:
+            text = parser.extract_text(pdf_path)
+        except Exception as exc:
+            print(f"Skipped {pdf_path.name}: {exc}")
+            continue
+
         chunks = chunk_text(text, chunk_size_words=400, overlap_words=60)
 
         ids: list[str] = []
@@ -46,9 +65,10 @@ def ingest_directory(data_dir: Path) -> None:
         metadatas: list[dict] = []
 
         for index, chunk in enumerate(chunks):
-            ids.append(str(uuid4()))
+            ids.append(build_chunk_id(pdf_path, index))
             documents.append(chunk)
             metadatas.append(
+                sanitize_metadata(
                 {
                     "title": metadata.get("title", pdf_path.stem),
                     "citation": metadata.get("citation"),
@@ -57,7 +77,9 @@ def ingest_directory(data_dir: Path) -> None:
                     "document_type": metadata.get("document_type", "judgment"),
                     "chunk_index": index,
                     "file_name": pdf_path.name,
+                    "source_folder": data_dir.name,
                 }
+                )
             )
 
         if documents:

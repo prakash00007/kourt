@@ -66,6 +66,9 @@ class Settings(BaseSettings):
     s3_verify_ssl: bool = True
     s3_presign_expiry_seconds: int = 900
 
+    kleopatra_api_key: str | None = None
+    kleopatra_base_url: str = "https://court-api.kleopatra.io/api"
+
     aws_region: str | None = None
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/kourt"
     database_pool_size: int = 10

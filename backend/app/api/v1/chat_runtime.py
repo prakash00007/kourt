@@ -68,29 +68,47 @@ def _extract_signal_terms(query: str) -> tuple[set[str], bool]:
     return terms, has_strong_anchor
 
 
-def _query_is_covered(query_terms: set[str], retrieved: list[dict]) -> bool:
+def _matches_query_terms(query_terms: set[str], anchor_terms: set[str], item: dict) -> bool:
+    metadata = item.get("metadata") or {}
+    text_parts = [
+        str(metadata.get("title", "")),
+        str(metadata.get("citation", "")),
+        str(metadata.get("court", "")),
+        item.get("text", ""),
+    ]
+    haystack = " ".join(text_parts).lower()
+
+    if anchor_terms and not all(anchor in haystack for anchor in anchor_terms):
+        return False
+
+    if query_terms:
+        return any(term in haystack for term in query_terms)
+    return True
+
+
+def _query_is_covered(query_terms: set[str], anchor_terms: set[str], retrieved: list[dict]) -> bool:
     if not query_terms:
         return True
 
     for item in retrieved:
-        metadata = item.get("metadata") or {}
-        text_parts = [
-            str(metadata.get("title", "")),
-            str(metadata.get("citation", "")),
-            str(metadata.get("court", "")),
-            item.get("text", ""),
-        ]
-        haystack = " ".join(text_parts).lower()
-        if any(term in haystack for term in query_terms):
+        if _matches_query_terms(query_terms, anchor_terms, item):
             return True
     return False
 
 
-def _build_gap_response(query: str, retrieved: list[dict], disclaimer: str) -> ChatResponse:
+def _build_gap_response(
+    query: str,
+    retrieved: list[dict],
+    disclaimer: str,
+    query_terms: set[str],
+    anchor_terms: set[str],
+) -> ChatResponse:
     citations: list[Citation] = []
     sources: list[SourceChunk] = []
 
-    for index, item in enumerate(retrieved, start=1):
+    filtered_items = [item for item in retrieved if _matches_query_terms(query_terms, anchor_terms, item)]
+
+    for index, item in enumerate(filtered_items, start=1):
         metadata = item.get("metadata") or {}
         title = metadata.get("title", f"Document {index}")
         citation = metadata.get("citation")
@@ -159,10 +177,21 @@ async def chat(
     cache_key = hashlib.sha256(payload.query.strip().lower().encode("utf-8")).hexdigest()
     retrieved = container.vector_store.search(payload.query, limit=container.settings.max_context_documents)
     query_terms, has_strong_anchor = _extract_signal_terms(payload.query)
+    anchor_terms = {
+        token.lower()
+        for token in re.findall(r"[A-Za-z0-9]+", payload.query)
+        if (token.isupper() and len(token) >= 3) or token.isdigit()
+    }
     top_score = max((item.get("score") or 0.0) for item in retrieved) if retrieved else 0.0
-    query_is_covered = _query_is_covered(query_terms, retrieved)
+    query_is_covered = _query_is_covered(query_terms, anchor_terms, retrieved)
     if query_terms and ((has_strong_anchor and not query_is_covered) or (top_score < 0.4 and not query_is_covered)):
-        response = _build_gap_response(payload.query, retrieved, container.settings.disclaimer_text)
+        response = _build_gap_response(
+            payload.query,
+            retrieved,
+            container.settings.disclaimer_text,
+            query_terms,
+            anchor_terms,
+        )
         await container.cache_service.set_json("research", cache_key, response.model_dump(mode="json"))
         return response
 
