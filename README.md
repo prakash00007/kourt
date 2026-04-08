@@ -95,6 +95,20 @@ kourt/
 - sentence-transformers for embeddings
 - Anthropic/OpenAI-compatible LLM integration with graceful fallback behavior
 
+## Free API data source
+
+If you want to seed the legal corpus from an API instead of manual PDFs, the best fully free option I found is the Kleopatra E-Courts India API:
+
+- [Kleopatra API docs](https://e-courts-india-api.readme.io/)
+
+It supports party-name search for Supreme Court, High Court, and District Court cases. The backend includes an importer for it at `backend/scripts/ingest_kleopatra_cases.py`.
+
+There is also a second free, no-key API that is live today:
+
+- [InsightLaw](https://insightlaw.in/)
+
+It provides Constitution, IPC, and BNS text plus search endpoints. The backend includes an importer for it at `backend/scripts/ingest_insightlaw_corpus.py`.
+
 ## Local setup
 
 ## Backend
@@ -217,6 +231,21 @@ What happens during ingestion:
 The local vector store lives at:
 
 - [backend/data/chroma](/Users/prakash/Documents/kourt/backend/data/chroma)
+
+## API-based corpus seeding
+
+You can also pull legal data from the free Kleopatra API and ingest it directly:
+
+```bash
+cd /Users/prakash/Documents/kourt/backend
+./venv/bin/python scripts/ingest_kleopatra_cases.py \
+  --court supreme \
+  --name "State of Tamil Nadu" \
+  --year 2021 \
+  --stage BOTH
+```
+
+Before running it, add `KLEOPATRA_API_KEY` to `backend/.env`.
 
 To confirm the corpus has data, open:
 

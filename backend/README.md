@@ -70,3 +70,55 @@ Run ingestion:
 ```bash
 PYTHONPATH=. python scripts/ingest_legal_corpus.py ./sample_data
 ```
+
+## Free API source for legal data
+
+For API-based corpus seeding, the best fully free source I found is the Kleopatra E-Courts India API:
+
+- [Kleopatra API docs](https://e-courts-india-api.readme.io/)
+
+It uses a bearer API key and exposes party-name search endpoints for:
+
+- Supreme Court
+- High Courts
+- District Courts
+
+Example usage from the backend folder:
+
+```bash
+./venv/bin/python scripts/ingest_kleopatra_cases.py \
+  --court supreme \
+  --name "State of Tamil Nadu" \
+  --year 2021 \
+  --stage BOTH
+```
+
+Notes:
+
+- This API is free in the sense that the docs present it as a free developer API, but you still need a valid API key from Kleopatra.
+- It is best for seeding the corpus from known party names and court scopes, not for topic search like "NDPS bail" by itself.
+- The script writes raw API responses to `backend/data/kleopatra_exports`, which is already ignored by git.
+
+## Other free API option
+
+If you want a free API with no key at all, use InsightLaw:
+
+- [InsightLaw API](https://insightlaw.in/)
+
+It currently exposes Constitution, IPC, and BNS text plus search endpoints.
+
+Example:
+
+```bash
+cd /Users/prakash/Documents/kourt/backend
+./venv/bin/python scripts/ingest_insightlaw_corpus.py \
+  --corpus ipc \
+  --start 1 \
+  --end 50
+```
+
+Notes:
+
+- This is useful for building a statutory backbone and general criminal-law context.
+- It does not appear to provide NDPS judgments.
+- The API is free and keyless, with a free tier limit documented on the site.
