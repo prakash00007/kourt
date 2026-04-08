@@ -122,3 +122,21 @@ Notes:
 - This is useful for building a statutory backbone and general criminal-law context.
 - It does not appear to provide NDPS judgments.
 - The API is free and keyless, with a free tier limit documented on the site.
+
+## Supreme Court open data source
+
+For actual judgment ingestion, the most useful free source is the official AWS open data bucket for Indian Supreme Court judgments:
+
+- [AWS Open Data registry entry](https://registry.opendata.aws/indian-supreme-court-judgments/)
+
+The backend includes a selective importer that looks for NDPS-related judgments and pulls the matching PDFs from the public bucket:
+
+```bash
+cd /Users/prakash/Documents/kourt/backend
+./venv/bin/python scripts/ingest_supreme_court_ndps.py \
+  --year-from 2019 \
+  --year-to 2024 \
+  --limit-per-year 12
+```
+
+If you want more or fewer hits, tweak `--keywords` or the year range. The importer stores raw year-level match reports in `backend/data/aws_scj_exports`.

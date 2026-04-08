@@ -109,6 +109,12 @@ There is also a second free, no-key API that is live today:
 
 It provides Constitution, IPC, and BNS text plus search endpoints. The backend includes an importer for it at `backend/scripts/ingest_insightlaw_corpus.py`.
 
+For real Supreme Court judgments, the strongest free source is the AWS open data bucket:
+
+- [AWS Indian Supreme Court Judgments](https://registry.opendata.aws/indian-supreme-court-judgments/)
+
+The backend now has a selective importer that pulls NDPS-related judgments from that dataset and ingests them into RAG.
+
 ## Local setup
 
 ## Backend
