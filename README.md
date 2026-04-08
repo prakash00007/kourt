@@ -136,6 +136,7 @@ Frontend app:
 
 For collaborator onboarding, repo structure, local fixes already applied, and contribution guidance, read:
 
+- [CONTRIBUTING.md](/Users/prakash/Documents/kourt/CONTRIBUTING.md)
 - [docs/collaborator-guide.md](/Users/prakash/Documents/kourt/docs/collaborator-guide.md)
 
 ## Main pages
