@@ -51,7 +51,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.settings = settings
 
     async def dispatch(self, request: Request, call_next):
-        if request.url.path.endswith("/health"):
+        path = request.url.path
+        if path.endswith("/health") or path.endswith("/health/live") or path.endswith("/health/ready") or path.endswith("/metrics"):
             return await call_next(request)
 
         redis = request.app.state.container.redis

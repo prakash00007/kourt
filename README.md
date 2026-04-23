@@ -60,6 +60,7 @@ That makes it easier to test the product locally and publish the MVP without aut
 kourt/
 ├── backend/
 │   ├── app/                      # FastAPI application
+│   │   └── agents/               # Main supervisor + task subagents
 │   ├── corpus_uploads/           # Drop PDFs here for RAG ingestion
 │   ├── data/                     # Local DB, Chroma store, uploads
 │   ├── scripts/                  # Ingestion and utility scripts
@@ -158,6 +159,7 @@ For collaborator onboarding, repo structure, local fixes already applied, and co
 
 - [CONTRIBUTING.md](/Users/prakash/Documents/kourt/CONTRIBUTING.md)
 - [docs/collaborator-guide.md](/Users/prakash/Documents/kourt/docs/collaborator-guide.md)
+- [docs/production-architecture.md](/Users/prakash/Documents/kourt/docs/production-architecture.md)
 
 ## Main pages
 
@@ -171,6 +173,7 @@ For collaborator onboarding, repo structure, local fixes already applied, and co
 
 - `GET /api/health`
 - `POST /api/chat`
+- `POST /api/agents/research`
 - `POST /api/upload`
 - `POST /api/draft`
 

@@ -1,15 +1,18 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import ORJSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.api.routes import router
 from app.core.config import get_settings
 from app.core.exceptions import AppError
 from app.core.logging import configure_logging
+from app.core.metrics import MetricsMiddleware
 from app.core.request_context import SentryContextMiddleware
 from app.core.sentry import init_sentry
 from app.core.middleware import RateLimitMiddleware, RequestContextMiddleware
@@ -26,9 +29,12 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     configure_logging(settings)
     init_sentry(settings)
+    if settings.disable_chroma_telemetry:
+        os.environ["ANONYMIZED_TELEMETRY"] = "False"
     app.state.container = ServiceContainer(settings=settings)
-    async with app.state.container.engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
+    if settings.create_schema_on_startup:
+        async with app.state.container.engine.begin() as connection:
+            await connection.run_sync(Base.metadata.create_all)
     await app.state.container.storage_service.ensure_bucket()
     logger.info("Application startup complete", extra={"extra_data": {"env": settings.app_env}})
     yield
@@ -55,6 +61,9 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
     )
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.trusted_hosts)
+    if settings.enable_metrics:
+        app.add_middleware(MetricsMiddleware)
     app.add_middleware(RequestContextMiddleware)
     app.add_middleware(SentryContextMiddleware, settings=settings)
     app.add_middleware(

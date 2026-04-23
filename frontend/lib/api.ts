@@ -7,6 +7,32 @@ type ChatPayload = { query: string };
 type DraftPayload = { draft_type: string; details: string };
 type AuthPayload = { email: string; password: string };
 type SignupPayload = AuthPayload & { tier: string };
+type ChatResponse = {
+  answer: string;
+  citations: Array<{ title: string; citation?: string; court?: string; source_url?: string }>;
+  sources: Array<{ title: string; excerpt: string; citation?: string; source_url?: string }>;
+  disclaimer: string;
+};
+type AuthResponse = {
+  access_token: string;
+  token_type: string;
+  user: { id: string; email: string; tier: string; created_at: string };
+};
+type DraftResponse = {
+  title: string;
+  draft: string;
+  disclaimer: string;
+};
+type UploadResponse = {
+  file_name: string;
+  summary: {
+    facts: string;
+    issues: string;
+    judgment: string;
+    key_takeaways: string;
+  };
+  disclaimer: string;
+};
 
 function withAuthHeaders(headers: HeadersInit, token?: string) {
   if (!token) {
@@ -52,7 +78,7 @@ async function apiRequest<T>(path: string, init: RequestInit, fallbackMessage: s
 }
 
 export async function sendChat(payload: ChatPayload, token?: string) {
-  return apiRequest("/chat", {
+  return apiRequest<ChatResponse>("/chat", {
     method: "POST",
     headers: withAuthHeaders({ "Content-Type": "application/json" }, token),
     body: JSON.stringify(payload)
@@ -60,7 +86,7 @@ export async function sendChat(payload: ChatPayload, token?: string) {
 }
 
 export async function loginUser(payload: AuthPayload) {
-  return apiRequest("/auth/login", {
+  return apiRequest<AuthResponse>("/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
@@ -68,7 +94,7 @@ export async function loginUser(payload: AuthPayload) {
 }
 
 export async function signupUser(payload: SignupPayload) {
-  return apiRequest("/auth/signup", {
+  return apiRequest<AuthResponse>("/auth/signup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
@@ -76,7 +102,7 @@ export async function signupUser(payload: SignupPayload) {
 }
 
 export async function generateDraft(payload: DraftPayload, token?: string) {
-  return apiRequest("/draft", {
+  return apiRequest<DraftResponse>("/draft", {
     method: "POST",
     headers: withAuthHeaders({ "Content-Type": "application/json" }, token),
     body: JSON.stringify(payload)
@@ -87,7 +113,7 @@ export async function uploadJudgment(file: File, token?: string) {
   const formData = new FormData();
   formData.append("file", file);
 
-  return apiRequest("/upload", {
+  return apiRequest<UploadResponse>("/upload", {
     method: "POST",
     headers: withAuthHeaders({}, token),
     body: formData
