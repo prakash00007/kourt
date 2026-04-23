@@ -5,9 +5,41 @@ FastAPI backend for the Indian lawyer AI copilot MVP.
 ## Features
 
 - `POST /api/chat`: RAG-based legal research over Indian legal documents
+- `POST /api/agents/research`: supervisor + subagent workflow with trace output
 - `POST /api/upload`: judgment PDF upload and structured summary generation
 - `POST /api/draft`: Indian legal draft generation
 - `GET /api/health`: operational health plus vector-store status
+- `GET /api/health/live`: liveness probe endpoint
+- `GET /api/health/ready`: readiness probe endpoint
+- `GET /api/metrics`: Prometheus metrics endpoint
+
+## Agent folder architecture
+
+The backend now uses a hierarchical folder layout for agent workflows:
+
+```text
+backend/app/agents/
+├── main/
+│   └── supervisor.py                            # top supervisor ("main subagent")
+├── shared/
+│   └── trace.py                                 # trace/report contracts
+└── tasks/
+    ├── research/
+    │   ├── supervisor.py                        # research task supervisor
+    │   └── subagents/
+    │       ├── planner.py
+    │       ├── retriever.py
+    │       ├── synthesizer.py
+    │       └── verifier.py
+    ├── drafting/
+    │   ├── supervisor.py
+    │   └── subagents/
+    │       └── drafting_worker.py
+    └── summarization/
+        ├── supervisor.py
+        └── subagents/
+            └── summarization_worker.py
+```
 
 ## Production hardening included
 

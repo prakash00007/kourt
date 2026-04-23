@@ -3,6 +3,7 @@ from typing import Any
 import logging
 
 import chromadb
+from chromadb.config import Settings as ChromaClientSettings
 
 from app.core.config import Settings
 from app.core.exceptions import RetrievalError
@@ -16,7 +17,10 @@ class VectorStore:
     def __init__(self, settings: Settings, embedding_service: EmbeddingService):
         self.settings = settings
         self.embedding_service = embedding_service
-        self.client = chromadb.PersistentClient(path=settings.chroma_path)
+        self.client = chromadb.PersistentClient(
+            path=settings.chroma_path,
+            settings=ChromaClientSettings(anonymized_telemetry=not settings.disable_chroma_telemetry),
+        )
         self.collection = self.client.get_or_create_collection(
             name=settings.chroma_collection_name,
             metadata={"description": "Indian legal corpus for Kourt MVP"},

@@ -17,11 +17,17 @@ class Settings(BaseSettings):
     app_version: str = "0.2.0"
     api_prefix: str = "/api"
     frontend_url: Annotated[list[str], NoDecode] = Field(default_factory=lambda: ["http://localhost:3000"])
+    trusted_hosts: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: ["localhost", "127.0.0.1", "0.0.0.0", "*.localhost"]
+    )
     log_level: str = "INFO"
     enable_docs: bool = True
+    enable_metrics: bool = True
     sentry_dsn: str | None = None
     sentry_environment: str = "development"
     sentry_traces_sample_rate: float = 0.0
+    create_schema_on_startup: bool = True
+    disable_chroma_telemetry: bool = True
 
     anthropic_api_key: str | None = None
     openai_api_key: str | None = None
@@ -73,6 +79,8 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/kourt"
     database_pool_size: int = 10
     database_max_overflow: int = 20
+    database_pool_timeout_seconds: int = 30
+    database_pool_recycle_seconds: int = 1800
 
     jwt_secret_key: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"
@@ -105,6 +113,13 @@ class Settings(BaseSettings):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
 
+    @field_validator("trusted_hosts", mode="before")
+    @classmethod
+    def normalize_trusted_hosts(cls, value):
+        if isinstance(value, str):
+            return [host.strip() for host in value.split(",") if host.strip()]
+        return value
+
     @field_validator("allowed_upload_extensions", mode="before")
     @classmethod
     def normalize_upload_extensions(cls, value):
@@ -119,6 +134,10 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_provider_keys(self):
+        valid_envs = {"development", "staging", "production"}
+        if self.app_env not in valid_envs:
+            raise ValueError(f"APP_ENV must be one of {sorted(valid_envs)}")
+
         if self.llm_provider == "anthropic" and not self.anthropic_api_key:
             raise ValueError("ANTHROPIC_API_KEY is required when LLM_PROVIDER=anthropic")
         if self.llm_provider == "openai" and not self.openai_api_key:
@@ -130,6 +149,15 @@ class Settings(BaseSettings):
                 raise ValueError("JWT_SECRET_KEY must be set to a secure value in production")
         if not self.s3_bucket_name:
             raise ValueError("S3_BUCKET_NAME is required")
+
+        if self.app_env == "production":
+            if self.allow_anonymous_demo:
+                raise ValueError("ALLOW_ANONYMOUS_DEMO must be false in production.")
+            if self.enable_docs:
+                raise ValueError("ENABLE_DOCS must be false in production.")
+            if self.create_schema_on_startup:
+                raise ValueError("CREATE_SCHEMA_ON_STARTUP must be false in production.")
+
         return self
 
 

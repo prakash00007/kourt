@@ -32,3 +32,6 @@ def configure_logging(settings: Settings) -> None:
     handler.setFormatter(JsonFormatter())
     root.addHandler(handler)
     root.setLevel(getattr(logging, settings.log_level.upper(), logging.INFO))
+
+    if settings.disable_chroma_telemetry:
+        logging.getLogger("chromadb.telemetry.product.posthog").setLevel(logging.CRITICAL)
