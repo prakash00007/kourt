@@ -5,7 +5,7 @@ FastAPI backend for the Indian lawyer AI copilot MVP.
 ## Features
 
 - `POST /api/chat`: RAG-based legal research over Indian legal documents
-- `POST /api/agents/research`: supervisor + subagent workflow with trace output
+- `POST /api/agents/research`: LangGraph-orchestrated supervisor + subagent workflow with trace output
 - `POST /api/upload`: judgment PDF upload and structured summary generation
 - `POST /api/draft`: Indian legal draft generation
 - `GET /api/health`: operational health plus vector-store status
@@ -25,7 +25,8 @@ backend/app/agents/
 │   └── trace.py                                 # trace/report contracts
 └── tasks/
     ├── research/
-    │   ├── supervisor.py                        # research task supervisor
+    │   ├── supervisor.py                        # LangGraph-compiled research supervisor
+    │   ├── state.py                             # typed graph state contract
     │   └── subagents/
     │       ├── planner.py
     │       ├── retriever.py

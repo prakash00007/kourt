@@ -90,6 +90,7 @@ kourt/
 ### Backend
 
 - FastAPI
+- LangGraph orchestration for multi-agent research workflow
 - SQLAlchemy
 - SQLite for the local demo
 - ChromaDB for the vector store
