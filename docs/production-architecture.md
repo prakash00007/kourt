@@ -12,13 +12,15 @@ This document describes the production-ready architecture for Kourt after harden
 - Vector store: ChromaDB persistent store
 - Observability: structured JSON logs + Prometheus metrics endpoint
 - Migrations: Alembic
+- Agent orchestration: LangGraph state-machine workflow for research
 
 ## Agent package layout
 
 The system now uses a strict hierarchical agent package:
 
 - `app/agents/main/supervisor.py`: main supervisor agent that reports final step trace
-- `app/agents/tasks/research/supervisor.py`: research task supervisor
+- `app/agents/tasks/research/supervisor.py`: LangGraph research task supervisor
+- `app/agents/tasks/research/state.py`: typed state for graph execution
 - `app/agents/tasks/research/subagents/*`: planner/retriever/synthesizer/verifier subagents
 - `app/agents/tasks/drafting/supervisor.py`: drafting task supervisor
 - `app/agents/tasks/drafting/subagents/drafting_worker.py`: drafting worker subagent
@@ -40,7 +42,7 @@ The system now uses a strict hierarchical agent package:
 - Metrics endpoint:
   - `/api/metrics`
 - Multi-agent endpoint:
-  - `/api/agents/research` (supervisor + planner/retriever/synthesizer/verifier subagents)
+  - `/api/agents/research` (LangGraph supervisor + planner/retriever/synthesizer/verifier subagents)
 
 ## Deployment shape
 
