@@ -13,6 +13,7 @@ This document describes the production-ready architecture for Kourt after harden
 - Observability: structured JSON logs + Prometheus metrics endpoint
 - Migrations: Alembic
 - Agent orchestration: LangGraph state-machine workflow for research
+- LLM provider strategy: Groq primary with configurable provider/model fallback
 
 ## Agent package layout
 

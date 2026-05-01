@@ -35,11 +35,7 @@ async def health_ready(
 ) -> dict[str, object]:
     redis_ok, db_ok = await _dependency_status(container)
     provider = container.settings.llm_provider
-    llm_configured = (
-        bool(container.settings.anthropic_api_key)
-        if provider == "anthropic"
-        else bool(container.settings.openai_api_key)
-    )
+    llm_configured = container.settings.is_llm_provider_configured(provider)
     storage_ok = True
     try:
         await container.storage_service.ensure_bucket()
@@ -64,11 +60,7 @@ async def health_ready(
 async def health_check(container: ServiceContainer = Depends(get_container)) -> dict[str, object]:
     vector_count = container.vector_store.collection.count()
     provider = container.settings.llm_provider
-    llm_configured = (
-        bool(container.settings.anthropic_api_key)
-        if provider == "anthropic"
-        else bool(container.settings.openai_api_key)
-    )
+    llm_configured = container.settings.is_llm_provider_configured(provider)
     redis_ok, db_ok = await _dependency_status(container)
 
     overall_status = "ok" if redis_ok and db_ok else "degraded"

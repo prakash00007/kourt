@@ -1,7 +1,14 @@
 const rawApiBaseUrl =
-  process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "/api";
 const normalizedApiBaseUrl = rawApiBaseUrl.replace(/\/$/, "");
-const API_BASE_URL = normalizedApiBaseUrl.endsWith("/api") ? normalizedApiBaseUrl : `${normalizedApiBaseUrl}/api`;
+const hasAbsoluteOrigin = /^https?:\/\//i.test(normalizedApiBaseUrl);
+const API_BASE_URL = hasAbsoluteOrigin
+  ? normalizedApiBaseUrl.endsWith("/api")
+    ? normalizedApiBaseUrl
+    : `${normalizedApiBaseUrl}/api`
+  : normalizedApiBaseUrl.endsWith("/api")
+    ? normalizedApiBaseUrl
+    : `${normalizedApiBaseUrl || ""}/api`;
 
 type ChatPayload = { query: string };
 type DraftPayload = { draft_type: string; details: string };

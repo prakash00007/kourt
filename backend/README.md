@@ -2,6 +2,8 @@
 
 FastAPI backend for the Indian lawyer AI copilot MVP.
 
+Default LLM runtime is Groq (`LLM_PROVIDER=groq`) with configurable fallback provider/model.
+
 ## Features
 
 - `POST /api/chat`: RAG-based legal research over Indian legal documents

@@ -95,7 +95,7 @@ kourt/
 - SQLite for the local demo
 - ChromaDB for the vector store
 - sentence-transformers for embeddings
-- Anthropic/OpenAI-compatible LLM integration with graceful fallback behavior
+- Groq-first LLM integration (plus OpenAI/Anthropic support) with graceful fallback behavior
 
 ## Free API data source
 
@@ -161,6 +161,7 @@ For collaborator onboarding, repo structure, local fixes already applied, and co
 - [CONTRIBUTING.md](/Users/prakash/Documents/kourt/CONTRIBUTING.md)
 - [docs/collaborator-guide.md](/Users/prakash/Documents/kourt/docs/collaborator-guide.md)
 - [docs/production-architecture.md](/Users/prakash/Documents/kourt/docs/production-architecture.md)
+- [deploy/README.md](/Users/prakash/Documents/kourt/deploy/README.md)
 
 ## Main pages
 
