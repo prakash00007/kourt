@@ -41,7 +41,7 @@ kourt/
 2. `EmbeddingService` turns the query into a vector.
 3. `VectorStore` searches Chroma for the top legal chunks.
 4. `ResearchService` builds a prompt with the query and retrieved context.
-5. `LLMService` sends the prompt to Claude or OpenAI.
+5. `LLMService` sends the prompt to Groq (or another configured provider).
 6. API returns answer, citations, source excerpts, and disclaimer.
 
 ### Judgment summarization
@@ -101,9 +101,9 @@ PYTHONPATH=. python scripts/ingest_legal_corpus.py ./sample_data
 
 ### Backend `.env`
 
-- `ANTHROPIC_API_KEY`
-- `OPENAI_API_KEY`
-- `LLM_PROVIDER=anthropic`
+- `GROQ_API_KEY`
+- `LLM_PROVIDER=groq`
+- optional: `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` for cross-provider fallback
 - `EMBEDDING_PROVIDER=sentence-transformers` for cheap local embeddings
 
 ### Frontend `.env.local`

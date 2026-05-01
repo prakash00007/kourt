@@ -31,13 +31,16 @@ class Settings(BaseSettings):
 
     anthropic_api_key: str | None = None
     openai_api_key: str | None = None
+    groq_api_key: str | None = None
     groq_base_url: str = "https://api.groq.com/openai/v1"
-    llm_model: str = "llama3-70b-8192"
-    llm_provider: str = "anthropic"
-    research_model: str = "claude-3-7-sonnet-20250219"
-    summarization_model: str = "claude-3-7-sonnet-20250219"
-    drafting_model: str = "claude-3-7-sonnet-20250219"
-    fallback_model: str = "gpt-4.1-mini"
+    openai_base_url: str | None = None
+    llm_model: str = "llama-3.3-70b-versatile"
+    llm_provider: str = "groq"
+    research_model: str = "llama-3.3-70b-versatile"
+    summarization_model: str = "llama-3.3-70b-versatile"
+    drafting_model: str = "llama-3.3-70b-versatile"
+    fallback_provider: str = "none"
+    fallback_model: str = "llama-3.1-8b-instant"
 
     embedding_provider: str = "sentence-transformers"
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
@@ -93,9 +96,17 @@ class Settings(BaseSettings):
     @field_validator("llm_provider")
     @classmethod
     def validate_llm_provider(cls, value: str) -> str:
-        allowed = {"anthropic", "openai"}
+        allowed = {"anthropic", "openai", "groq"}
         if value not in allowed:
             raise ValueError(f"llm_provider must be one of {sorted(allowed)}")
+        return value
+
+    @field_validator("fallback_provider")
+    @classmethod
+    def validate_fallback_provider(cls, value: str) -> str:
+        allowed = {"anthropic", "openai", "groq", "none"}
+        if value not in allowed:
+            raise ValueError(f"fallback_provider must be one of {sorted(allowed)}")
         return value
 
     @field_validator("embedding_provider")
@@ -142,6 +153,17 @@ class Settings(BaseSettings):
             raise ValueError("ANTHROPIC_API_KEY is required when LLM_PROVIDER=anthropic")
         if self.llm_provider == "openai" and not self.openai_api_key:
             raise ValueError("OPENAI_API_KEY is required when LLM_PROVIDER=openai")
+        if self.llm_provider == "groq" and not (self.groq_api_key or self.openai_api_key):
+            raise ValueError("GROQ_API_KEY is required when LLM_PROVIDER=groq")
+
+        if self.fallback_provider != "none":
+            if self.fallback_provider == "anthropic" and not self.anthropic_api_key:
+                raise ValueError("ANTHROPIC_API_KEY is required when FALLBACK_PROVIDER=anthropic")
+            if self.fallback_provider == "openai" and not self.openai_api_key:
+                raise ValueError("OPENAI_API_KEY is required when FALLBACK_PROVIDER=openai")
+            if self.fallback_provider == "groq" and not (self.groq_api_key or self.openai_api_key):
+                raise ValueError("GROQ_API_KEY is required when FALLBACK_PROVIDER=groq")
+
         if self.embedding_provider == "openai" and not self.openai_api_key:
             raise ValueError("OPENAI_API_KEY is required when EMBEDDING_PROVIDER=openai")
         if not self.jwt_secret_key or self.jwt_secret_key == "change-me-in-production":
@@ -159,6 +181,16 @@ class Settings(BaseSettings):
                 raise ValueError("CREATE_SCHEMA_ON_STARTUP must be false in production.")
 
         return self
+
+    def is_llm_provider_configured(self, provider: str | None = None) -> bool:
+        selected = provider or self.llm_provider
+        if selected == "anthropic":
+            return bool(self.anthropic_api_key)
+        if selected == "openai":
+            return bool(self.openai_api_key)
+        if selected == "groq":
+            return bool(self.groq_api_key or self.openai_api_key)
+        return False
 
 
 @lru_cache(maxsize=1)
